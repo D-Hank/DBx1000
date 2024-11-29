@@ -14,7 +14,7 @@ int Query_queue::_next_tid;
 
 void 
 Query_queue::init(workload * h_wl) {
-	all_queries = new Query_thd * [g_thread_cnt];
+	all_queries = new Query_thd * [g_thread_cnt]; // Assign these queries to threads
 	_wl = h_wl;
 	_next_tid = 0;
 	
@@ -49,9 +49,9 @@ Query_queue::get_next_query(uint64_t thd_id) {
 }
 
 void *
-Query_queue::threadInitQuery(void * This) {
+Query_queue::threadInitQuery(void * This) { // Each thread access this same query queue
 	Query_queue * query_queue = (Query_queue *)This;
-	uint32_t tid = ATOM_FETCH_ADD(_next_tid, 1);
+	uint32_t tid = ATOM_FETCH_ADD(_next_tid, 1); // NOTE: Why not get this tid by pthread arg?
 	
 	// set cpu affinity
 	set_affinity(tid);
@@ -68,7 +68,7 @@ void
 Query_thd::init(workload * h_wl, int thread_id) {
 	uint64_t request_cnt;
 	q_idx = 0;
-	request_cnt = WARMUP / g_thread_cnt + MAX_TXN_PER_PART + 4;
+	request_cnt = WARMUP / g_thread_cnt + MAX_TXN_PER_PART + 4; // NOTE: Where does this 4 come from? Maybe just for reservation? (since get_next_query can reads until NULL)
 #if ABORT_BUFFER_ENABLE
     request_cnt += ABORT_BUFFER_SIZE;
 #endif

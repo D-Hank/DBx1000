@@ -1,6 +1,6 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
-
+#define NOGRAPHITE					1
 /***********************************************/
 // Simulation + Hardware
 /***********************************************/
@@ -9,7 +9,7 @@
 // each transaction only accesses 1 virtual partition. But the lock/ts manager and index are not aware of such partitioning. VIRTUAL_PART_CNT describes the request distribution and is only used to generate queries. For HSTORE, VIRTUAL_PART_CNT should be the same as PART_CNT.
 #define VIRTUAL_PART_CNT			1
 #define PAGE_SIZE					4096 
-#define CL_SIZE						64
+#define CL_SIZE						64 // Size of a Column/Catalog data structure
 // CPU_FREQ is used to get accurate timing info 
 #define CPU_FREQ 					2 	// in GHz/s
 
@@ -39,7 +39,7 @@
 /***********************************************/
 // WAIT_DIE, NO_WAIT, DL_DETECT, TIMESTAMP, MVCC, HEKATON, HSTORE, OCC, VLL, TICTOC, SILO
 // TODO TIMESTAMP does not work at this moment
-#define CC_ALG 						TICTOC
+#define CC_ALG 						OCC
 #define ISOLATION_LEVEL 			SERIALIZABLE
 
 // all transactions acquire tuples according to the primary key order.
@@ -49,7 +49,7 @@
 // per-row lock/ts management or central lock/ts management
 #define CENTRAL_MAN					false
 #define BUCKET_CNT					31
-#define ABORT_PENALTY 				100000
+#define ABORT_PENALTY 				100000 // Add some delay (in nanosecond) for aborted txn so that it can restart
 #define ABORT_BUFFER_SIZE			10
 #define ABORT_BUFFER_ENABLE			true
 // [ INDEX ]
@@ -110,19 +110,19 @@
 #define MAX_ROW_PER_TXN				64
 #define QUERY_INTVL 				1UL
 #define MAX_TXN_PER_PART 			100000
-#define FIRST_PART_LOCAL 			true
+#define FIRST_PART_LOCAL 			true // Whether the first part to access is local
 #define MAX_TUPLE_SIZE				1024 // in bytes
 // ==== [YCSB] ====
-#define INIT_PARALLELISM			40
-#define SYNTH_TABLE_SIZE 			(1024 * 1024 * 10)
+#define INIT_PARALLELISM			40 // Number of threads when we do initialization
+#define SYNTH_TABLE_SIZE 			(1024 * 1024 * 10) // Table we synthesize, number of records, ~10 million
 #define ZIPF_THETA 					0.6
-#define READ_PERC 					0.9
+#define READ_PERC 					0.9 // Percentage
 #define WRITE_PERC 					0.1
 #define SCAN_PERC 					0
 #define SCAN_LEN					20
 #define PART_PER_TXN 				1
-#define PERC_MULTI_PART				1
-#define REQ_PER_QUERY				16
+#define PERC_MULTI_PART				1 // Percentage/probability that a query will spread multiple part
+#define REQ_PER_QUERY				16 // Each txn by default accesses 16 records (Sec 3.3)
 #define FIELD_PER_TUPLE				10
 // ==== [TPCC] ====
 // For large warehouse count, the tables do not fit in memory

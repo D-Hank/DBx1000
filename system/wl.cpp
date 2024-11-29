@@ -19,8 +19,8 @@ RC workload::init_schema(string schema_file) {
 	string line;
 	ifstream fin(schema_file);
     Catalog * schema;
-    while (getline(fin, line)) {
-		if (line.compare(0, 6, "TABLE=") == 0) {
+    while (getline(fin, line)) { // Get this schema title
+		if (line.compare(0, 6, "TABLE=") == 0) { // If belongs to a table
 			string tname;
 			tname = &line[6];
 			schema = (Catalog *) _mm_malloc(sizeof(Catalog), CL_SIZE);
@@ -28,12 +28,12 @@ RC workload::init_schema(string schema_file) {
 			int col_count = 0;
 			// Read all fields for this table.
 			vector<string> lines;
-			while (line.length() > 1) {
+			while (line.length() > 1) { // Consume all lines of this table, until empty line
 				lines.push_back(line);
 				getline(fin, line);
 			}
-			schema->init( tname.c_str(), lines.size() );
-			for (UInt32 i = 0; i < lines.size(); i++) {
+			schema->init( tname.c_str(), lines.size() ); // For YCSB, we have 10 columns
+			for (UInt32 i = 0; i < lines.size(); i++) { // Check each line (column)
 				string line = lines[i];
 			    size_t pos = 0;
 				string token;
@@ -65,12 +65,12 @@ RC workload::init_schema(string schema_file) {
         } else if (!line.compare(0, 6, "INDEX=")) {
 			string iname;
 			iname = &line[6];
-			getline(fin, line);
+			getline(fin, line); // Next line
 
 			vector<string> items;
 			string token;
 			size_t pos;
-			while (line.length() != 0) {
+			while (line.length() != 0) { // Split: on which table, which key
 				pos = line.find(",");
 				if (pos == string::npos)
 					pos = line.length();
@@ -87,7 +87,7 @@ RC workload::init_schema(string schema_file) {
 				part_cnt = 1;
 #if INDEX_STRUCT == IDX_HASH
 	#if WORKLOAD == YCSB
-			index->init(part_cnt, tables[tname], g_synth_table_size * 2);
+			index->init(part_cnt, tables[tname], g_synth_table_size * 2); // This size is specified intuitively?
 	#elif WORKLOAD == TPCC
 			assert(tables[tname] != NULL);
 			index->init(part_cnt, tables[tname], stoi( items[1] ) * part_cnt);

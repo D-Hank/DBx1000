@@ -4,7 +4,7 @@
 #include "pthread.h"
 
 void Manager::init() {
-	timestamp = (uint64_t *) _mm_malloc(sizeof(uint64_t), 64);
+	timestamp = (uint64_t *) _mm_malloc(sizeof(uint64_t), 64); // NOTE: Why alloc on heap instead of BSS?
 	*timestamp = 1;
 	_last_min_ts_time = 0;
 	_min_ts = 0;
@@ -12,13 +12,13 @@ void Manager::init() {
 	_last_epoch_update_time = (ts_t *) _mm_malloc(sizeof(uint64_t), 64);
 	_epoch = 0;
 	_last_epoch_update_time = 0;
-	all_ts = (ts_t volatile **) _mm_malloc(sizeof(ts_t *) * g_thread_cnt, 64);
+	all_ts = (ts_t volatile **) _mm_malloc(sizeof(ts_t *) * g_thread_cnt, 64); // Store address of each thd's txn ts
 	for (uint32_t i = 0; i < g_thread_cnt; i++) 
 		all_ts[i] = (ts_t *) _mm_malloc(sizeof(ts_t), 64);
 
 	_all_txns = new txn_man * [g_thread_cnt];
-	for (UInt32 i = 0; i < g_thread_cnt; i++) {
-		*all_ts[i] = UINT64_MAX;
+	for (UInt32 i = 0; i < g_thread_cnt; i++) { // Store addr of each thd's txn manager
+		*all_ts[i] = UINT64_MAX; // NOTE: How do we handle overflow?
 		_all_txns[i] = NULL;
 	}
 	for (UInt32 i = 0; i < BUCKET_CNT; i++)
@@ -26,7 +26,7 @@ void Manager::init() {
 }
 
 uint64_t 
-Manager::get_ts(uint64_t thread_id) {
+Manager::get_ts(uint64_t thread_id) { // Default: no batch, using CAS
 	if (g_ts_batch_alloc)
 		assert(g_ts_alloc == TS_CAS);
 	uint64_t time;
@@ -80,7 +80,7 @@ void Manager::add_ts(uint64_t thd_id, ts_t ts) {
 		*all_ts[thd_id] == UINT64_MAX);
 	*all_ts[thd_id] = ts;
 }
-
+// Each thread registers its txn in global structure
 void Manager::set_txn_man(txn_man * txn) {
 	int thd_id = txn->get_thd_id();
 	_all_txns[thd_id] = txn;

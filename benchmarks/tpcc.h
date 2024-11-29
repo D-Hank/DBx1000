@@ -37,7 +37,7 @@ public:
 	bool ** delivering;
 	uint32_t next_tid;
 private:
-	uint64_t num_wh;
+	uint64_t num_wh; // Number of warehouses
 	void init_tab_item();
 	void init_tab_wh(uint32_t wid);
 	void init_tab_dist(uint64_t w_id);

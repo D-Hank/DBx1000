@@ -33,7 +33,7 @@ private:
 
 	pthread_mutex_t ts_mutex;
 	uint64_t *		timestamp;
-	pthread_mutex_t mutexes[BUCKET_CNT];
+	pthread_mutex_t mutexes[BUCKET_CNT]; // NOTE: Why fixed?
 	uint64_t 		hash(row_t * row);
 	ts_t volatile * volatile * volatile all_ts;
 	txn_man ** 		_all_txns;

@@ -5,13 +5,13 @@
 // Assume the data is strided across the L2 slices, stride granularity 
 // is the size of a page
 void mem_alloc::init(uint64_t part_cnt, uint64_t bytes_per_part) {
-	if (g_thread_cnt < g_init_parallelism)
+	if (g_thread_cnt < g_init_parallelism) // Compute number of buckets
 		_bucket_cnt = g_init_parallelism * 4 + 1;
 	else
 		_bucket_cnt = g_thread_cnt * 4 + 1;
-	pid_arena = new std::pair<pthread_t, int>[_bucket_cnt];
+	pid_arena = new std::pair<pthread_t, int>[_bucket_cnt]; // Map threadID to bucketID (memory pool)
 	for (int i = 0; i < _bucket_cnt; i ++)
-		pid_arena[i] = std::make_pair(0, 0);
+		pid_arena[i] = std::make_pair(0, 0); // Init: not owned by anyone
 
 	if (THREAD_ALLOC) {
 		assert( !g_part_alloc );

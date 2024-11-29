@@ -5,7 +5,8 @@
 #include "index_base.h"
 
 //TODO make proper variables private
-// each BucketNode contains items sharing the same key
+// each BucketNode contains items sharing the same key (if `items` itself is organized as a link list)
+// which means we allow different items with repeated keys
 class BucketNode {
 public: 
 	BucketNode(idx_key_t key) {	init(key); };
@@ -22,6 +23,7 @@ public:
 };
 
 // BucketHeader does concurrency control of Hash
+// All nodes under this header should have the same hash value
 class BucketHeader {
 public:
 	void init();
@@ -29,9 +31,9 @@ public:
 	void read_item(idx_key_t key, itemid_t * &item, const char * tname);
 	BucketNode * 	first_node;
 	uint64_t 		node_cnt;
-	bool 			locked;
+	bool 			locked; // A relatively simple version of latches (Sec 5.5)
 };
-
+// Value of indexing should be of itemid_t, can be row, table or page
 // TODO Hash index does not support partition yet.
 class IndexHash  : public index_base
 {
@@ -53,7 +55,7 @@ private:
 	// TODO implement more complex hash function
 	uint64_t hash(idx_key_t key) {	return key % _bucket_cnt_per_part; }
 	
-	BucketHeader ** 	_buckets;
-	uint64_t	 		_bucket_cnt;
+	BucketHeader ** 	_buckets; // All buckets on a partition basis, [i][j]=[part][bucketID in part]
+	uint64_t	 		_bucket_cnt; // How many buckets to use in this hash index
 	uint64_t 			_bucket_cnt_per_part;
 };

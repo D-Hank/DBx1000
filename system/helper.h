@@ -168,7 +168,7 @@ uint64_t merge_idx_key(uint64_t key1, uint64_t key2);
 uint64_t merge_idx_key(uint64_t key1, uint64_t key2, uint64_t key3);
 
 extern timespec * res;
-inline uint64_t get_server_clock() {
+inline uint64_t get_server_clock() { // Nanosecond
 #if defined(__i386__)
     uint64_t ret;
     __asm__ __volatile__("rdtsc" : "=A" (ret));
@@ -184,7 +184,7 @@ inline uint64_t get_server_clock() {
 #endif
     return ret;
 }
-
+// Nanosecond
 inline uint64_t get_sys_clock() {
 #ifndef NOGRAPHITE
 	static volatile uint64_t fake_clock = 0;

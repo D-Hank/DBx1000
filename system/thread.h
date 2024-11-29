@@ -34,11 +34,11 @@ private:
 
 	// A restart buffer for aborted txns.
 	struct AbortBufferEntry	{
-		ts_t ready_time;
+		ts_t ready_time; // Next time to be ready
 		base_query * query;
 	};
 	AbortBufferEntry * _abort_buffer;
-	int _abort_buffer_size;
-	int _abort_buffer_empty_slots;
+	int _abort_buffer_size; // Capacity of abort buffer
+	int _abort_buffer_empty_slots; // Number of empty slots in abort buffer
 	bool _abort_buffer_enable;
 };

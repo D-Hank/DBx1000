@@ -3,7 +3,7 @@
 #include "helper.h"
 
 void 
-Catalog::init(const char * table_name, int field_cnt) {
+Catalog::init(const char * table_name, int field_cnt) { // Specify how many fields we need
 	this->table_name = table_name;
 	this->field_cnt = 0;
 	this->_columns = new Column [field_cnt];

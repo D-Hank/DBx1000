@@ -77,7 +77,7 @@ dbms benchmark has the following parameters in the config file. Parameters with 
   FIRST_PART_LOCAL	: with this being true, the first touched partition is always the local partition.
   
   // for TPCC Benchmark
-  NUM_HW		: number of warehouses being modeled.
+  NUM_WH		: number of warehouses being modeled.
   PERC_PAYMENT	: percentage of payment transactions.
   DIST_PER_WARE	: number of districts in one warehouse
   MAXITEMS		: number of items modeled.

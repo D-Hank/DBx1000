@@ -15,13 +15,13 @@ class INDEX;
 
 //For VLL
 enum TxnType {VLL_Blocked, VLL_Free};
-
+// Record info (type, data, ...) of one access in a certain txn
 class Access {
 public:
 	access_t 	type;
-	row_t * 	orig_row;
-	row_t * 	data;
-	row_t * 	orig_data;
+	row_t * 	orig_row; // The original row itself we accessed, may change once we release its latch
+	row_t * 	data; // Data we want to read or write
+	row_t * 	orig_data; // Original data, no need in OCC
 	void cleanup();
 #if CC_ALG == TICTOC
 	ts_t 		wts;
@@ -43,8 +43,8 @@ public:
 	thread_t * h_thd;
 	workload * h_wl;
 	myrand * mrand;
-	uint64_t abort_cnt;
-
+	uint64_t abort_cnt; // Num of abort when dealing with one txn. May be useless
+	// Run a txn/query and get running code. Resouces are handled internally. If abort, may restart later
 	virtual RC 		run_txn(base_query * m_query) = 0;
 	uint64_t 		get_thd_id();
 	workload * 		get_wl();
@@ -55,7 +55,7 @@ public:
 	ts_t 			get_ts();
 
 	pthread_mutex_t txn_lock;
-	row_t * volatile cur_row;
+	row_t * volatile cur_row; // Content of the row we are currently dealing with
 #if CC_ALG == HEKATON
 	void * volatile history_entry;
 #endif
@@ -81,10 +81,10 @@ public:
 	uint64_t 		start_ts;
 	uint64_t 		end_ts;
 	// following are public for OCC
-	int 			row_cnt;
-	int	 			wr_cnt;
-	Access **		accesses;
-	int 			num_accesses_alloc;
+	int 			row_cnt; // How many rows we accessed (WR or RD, can have repetitions, no SCAN up to now)
+	int	 			wr_cnt; // How many rows we wrote
+	Access **		accesses; // Those accesses we made in this txn
+	int 			num_accesses_alloc; // Max number of slots in `accesses` we use. Note that `row_cnt` can be reset in `cleanup` thus slots can be reused
 
 	// For VLL
 	TxnType 		vll_txn_type;
@@ -95,9 +95,9 @@ protected:
 	void 			insert_row(row_t * row, table_t * table);
 private:
 	// insert rows
-	uint64_t 		insert_cnt;
-	row_t * 		insert_rows[MAX_ROW_PER_TXN];
-	txnid_t 		txn_id;
+	uint64_t 		insert_cnt; // Number of inserted rows
+	row_t * 		insert_rows[MAX_ROW_PER_TXN]; // Rows we inserted
+	txnid_t 		txn_id; // My currently processing txn, its ID among all possible txn
 	ts_t 			timestamp;
 
 	bool _write_copy_ptr;

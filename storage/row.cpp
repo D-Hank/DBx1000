@@ -79,7 +79,7 @@ uint64_t row_t::get_tuple_size() {
 uint64_t row_t::get_field_cnt() { 
 	return get_schema()->field_cnt;
 }
-
+// Set a specified field to a certain value (set value, not reference)
 void row_t::set_value(int id, void * ptr) {
 	int datasize = get_schema()->get_field_size(id);
 	int pos = get_schema()->get_field_index(id);
@@ -127,7 +127,7 @@ void row_t::set_data(char * data, uint64_t size) {
 void row_t::copy(row_t * src) {
 	set_data(src->get_data(), src->get_tuple_size());
 }
-
+// Allocated by stdlib
 void row_t::free_row() {
 	free(data);
 }
@@ -259,7 +259,8 @@ RC row_t::get_row(access_t type, txn_man * txn, row_t *& row) {
 	assert(false);
 #endif
 }
-
+// Free `row`. If WR succeeded, write content in `row` to `this`.
+// Note that failed WR will become XP
 // the "row" is the row read out in get_row(). 
 // For locking based CC_ALG, the "row" is the same as "this". 
 // For timestamp based CC_ALG, the "row" != "this", and the "row" must be freed.
@@ -294,10 +295,10 @@ void row_t::return_row(access_t type, txn_man * txn, row_t * row) {
 	}
 #elif CC_ALG == OCC
 	assert (row != NULL);
-	if (type == WR)
-		manager->write( row, txn->end_ts );
-	row->free_row();
-	mem_allocator.free(row, sizeof(row_t));
+	if (type == WR) // Failed WR should be XP, thus will not be committed
+		manager->write( row, txn->end_ts ); // Note that `this` original row is already locked while `row` is the new row
+	row->free_row(); // Free data buffer
+	mem_allocator.free(row, sizeof(row_t)); // Free meta data
 	return;
 #elif CC_ALG == TICTOC || CC_ALG == SILO
 	assert (row != NULL);

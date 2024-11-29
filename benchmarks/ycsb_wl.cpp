@@ -17,7 +17,7 @@
 #include "query.h"
 
 int ycsb_wl::next_tid;
-
+// Init tables and indexes
 RC ycsb_wl::init() {
 	workload::init();
 	next_tid = 0;
@@ -35,7 +35,7 @@ RC ycsb_wl::init_schema(string schema_file) {
 	the_index = indexes["MAIN_INDEX"];
 	return RCOK;
 }
-	
+// Which partition this key locates
 int 
 ycsb_wl::key_to_part(uint64_t key) {
 	uint64_t rows_per_part = g_synth_table_size / g_part_cnt;
@@ -44,8 +44,8 @@ ycsb_wl::key_to_part(uint64_t key) {
 
 RC ycsb_wl::init_table() {
 	RC rc;
-    uint64_t total_row = 0;
-    while (true) {
+    uint64_t total_row = 0; // Total number of rows up to now
+    while (true) { // Separate rows into each partition until we get enough tuples (Sec 5.5)
     	for (UInt32 part_id = 0; part_id < g_part_cnt; part_id ++) {
             if (total_row > g_synth_table_size)
                 goto ins_done;
@@ -57,13 +57,13 @@ RC ycsb_wl::init_table() {
 			assert(rc == RCOK);
 			uint64_t primary_key = total_row;
 			new_row->set_primary_key(primary_key);
-            new_row->set_value(0, &primary_key);
+            new_row->set_value(0, &primary_key); // Set field 0 to be prikey
 			Catalog * schema = the_table->get_schema();
-			for (UInt32 fid = 0; fid < schema->get_field_cnt(); fid ++) {
+			for (UInt32 fid = 0; fid < schema->get_field_cnt(); fid ++) { // NOTE: Will overwrite prikey?
 				int field_size = schema->get_field_size(fid);
 				char value[field_size];
 				for (int i = 0; i < field_size; i++) 
-					value[i] = (char)rand() % (1<<8) ;
+					value[i] = (char)rand() % (1<<8) ; // Give each byte a random value
 				new_row->set_value(fid, value);
 			}
             itemid_t * m_item = 
@@ -72,7 +72,7 @@ RC ycsb_wl::init_table() {
             m_item->type = DT_row;
             m_item->location = new_row;
             m_item->valid = true;
-            uint64_t idx_key = primary_key;
+            uint64_t idx_key = primary_key; // Use prikey for indexing
             rc = the_index->index_insert(idx_key, m_item, part_id);
             assert(rc == RCOK);
             total_row ++;
@@ -114,8 +114,8 @@ void * ycsb_wl::init_table_slice() {
 	assert(tid < g_init_parallelism);
 	while ((UInt32)ATOM_FETCH_ADD(next_tid, 0) < g_init_parallelism) {}
 	assert((UInt32)ATOM_FETCH_ADD(next_tid, 0) == g_init_parallelism);
-	uint64_t slice_size = g_synth_table_size / g_init_parallelism;
-	for (uint64_t key = slice_size * tid; 
+	uint64_t slice_size = g_synth_table_size / g_init_parallelism; // Slice I'm responsible for
+	for (uint64_t key = slice_size * tid; // My currently checking key
 			key < slice_size * (tid + 1); 
 			key ++
 	) {
@@ -129,8 +129,8 @@ void * ycsb_wl::init_table_slice() {
 		new_row->set_value(0, &primary_key);
 		Catalog * schema = the_table->get_schema();
 		
-		for (UInt32 fid = 0; fid < schema->get_field_cnt(); fid ++) {
-			char value[6] = "hello";
+		for (UInt32 fid = 0; fid < schema->get_field_cnt(); fid ++) { // Will overwrite prikey?
+			char value[6] = "hello"; // Will read out of bound?
 			new_row->set_value(fid, value);
 		}
 
@@ -147,7 +147,7 @@ void * ycsb_wl::init_table_slice() {
 	}
 	return NULL;
 }
-
+// Create a new transaction manager and bind it to this hardware/simulator thread
 RC ycsb_wl::get_txn_man(txn_man *& txn_manager, thread_t * h_thd){
 	txn_manager = (ycsb_txn_man *)
 		_mm_malloc( sizeof(ycsb_txn_man), 64 );

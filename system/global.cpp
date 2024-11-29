@@ -38,7 +38,7 @@ UInt32 g_ts_batch_num = TS_BATCH_NUM;
 
 bool g_part_alloc = PART_ALLOC;
 bool g_mem_pad = MEM_PAD;
-UInt32 g_cc_alg = CC_ALG;
+UInt32 g_cc_alg = CC_ALG; // Which concurrency control algorithm
 ts_t g_query_intvl = QUERY_INTVL;
 UInt32 g_part_per_txn = PART_PER_TXN;
 double g_perc_multi_part = PERC_MULTI_PART;
@@ -47,14 +47,14 @@ double g_write_perc = WRITE_PERC;
 double g_zipf_theta = ZIPF_THETA;
 bool g_prt_lat_distr = PRT_LAT_DISTR;
 UInt32 g_part_cnt = PART_CNT;
-UInt32 g_virtual_part_cnt = VIRTUAL_PART_CNT;
+UInt32 g_virtual_part_cnt = VIRTUAL_PART_CNT; // Just our imaginary partition when generating data
 UInt32 g_thread_cnt = THREAD_CNT;
 UInt64 g_synth_table_size = SYNTH_TABLE_SIZE;
 UInt32 g_req_per_query = REQ_PER_QUERY;
 UInt32 g_field_per_tuple = FIELD_PER_TUPLE;
 UInt32 g_init_parallelism = INIT_PARALLELISM;
 
-UInt32 g_num_wh = NUM_WH;
+UInt32 g_num_wh = NUM_WH; // Num of warehouses, for TPCC
 double g_perc_payment = PERC_PAYMENT;
 bool g_wh_update = WH_UPDATE;
 char * output_file = NULL;

@@ -15,14 +15,14 @@ RC table_t::get_new_row(row_t *& row) {
 	assert(false);
 	return RCOK;
 }
-
+// Alloc a new row, return its ptr and ID
 // the row is not stored locally. the pointer must be maintained by index structure.
 RC table_t::get_new_row(row_t *& row, uint64_t part_id, uint64_t &row_id) {
 	RC rc = RCOK;
 	cur_tab_size ++;
 	
 	row = (row_t *) _mm_malloc(sizeof(row_t), 64);
-	rc = row->init(this, part_id, row_id);
+	rc = row->init(this, part_id, row_id); // NOTE: but we haven't assign a row_id?
 	row->init_manager(row);
 
 	return rc;

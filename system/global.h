@@ -45,7 +45,7 @@ typedef int32_t SInt32;
 typedef uint64_t UInt64;
 typedef int64_t SInt64;
 
-typedef uint64_t ts_t; // time stamp type
+typedef uint64_t ts_t; // time stamp type (nanosecond)
 
 /******************************************/
 // Global Data Structure 
@@ -109,7 +109,7 @@ extern bool g_wh_update;
 extern char * output_file;
 extern UInt32 g_max_items;
 extern UInt32 g_cust_per_dist;
-
+// Running code?
 enum RC { RCOK, Commit, Abort, WAIT, ERROR, FINISH};
 
 /* Thread */
@@ -132,6 +132,7 @@ typedef uint64_t idx_key_t; // key id for index
 typedef uint64_t (*func_ptr)(idx_key_t);	// part_id func_ptr(index_key);
 
 /* general concurrency control */
+// What does it mean by `XP`? Expired? Aborted write?
 enum access_t {RD, WR, XP, SCAN};
 /* LOCK */
 enum lock_t {LOCK_EX, LOCK_SH, LOCK_NONE };

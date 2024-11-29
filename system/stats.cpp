@@ -54,7 +54,7 @@ void Stats::init() {
 	deadlock = 0;
 	cycle_detect = 0;
 }
-
+// Each thread init its own data structures
 void Stats::init(uint64_t thread_id) {
 	if (!STATS_ENABLE) 
 		return;

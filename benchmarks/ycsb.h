@@ -15,8 +15,8 @@ public :
 	RC init_schema(string schema_file);
 	RC get_txn_man(txn_man *& txn_manager, thread_t * h_thd);
 	int key_to_part(uint64_t key);
-	INDEX * the_index;
-	table_t * the_table;
+	INDEX * the_index; // The only index we will use in YCSB
+	table_t * the_table; // The only table we will use in YCSB
 private:
 	void init_table_parallel();
 	void * init_table_slice();
@@ -36,7 +36,7 @@ public:
 	RC run_txn(base_query * query);
 private:
 	uint64_t row_cnt;
-	ycsb_wl * _wl;
+	ycsb_wl * _wl; // Belongs to which workload (default: same wl for all threads)
 };
 
 #endif

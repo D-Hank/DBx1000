@@ -31,7 +31,8 @@ class Row_occ;
 class Row_tictoc;
 class Row_silo;
 class Row_vll;
-
+// There could be some intermediate data structure for a row to help the manager?
+// Alloc this meta data locally while the data itself using stdlib?
 class row_t
 {
 public:
@@ -48,7 +49,7 @@ public:
 	uint64_t get_field_cnt();
 	uint64_t get_tuple_size();
 	uint64_t get_row_id() { return _row_id; };
-
+	// Maybe there's no need to use a manager and points back here again?
 	void copy(row_t * src);
 
 	void 		set_primary_key(uint64_t key) { _primary_key = key; };
@@ -80,6 +81,9 @@ public:
 	void free_row();
 
 	// for concurrency control. can be lock, timestamp etc.
+	// Try to access `this` row with priority specified by `type` and transaction specified by `txn`.
+	// Fill the content (usually a copy) you want in the reference `&row`
+	// CC manager corresponding to our protocol will be called
 	RC get_row(access_t type, txn_man * txn, row_t *& row);
 	void return_row(access_t type, txn_man * txn, row_t * row);
 	
@@ -92,7 +96,7 @@ public:
   #elif CC_ALG == HEKATON
   	Row_hekaton * manager;
   #elif CC_ALG == OCC
-  	Row_occ * manager;
+  	Row_occ * manager; // This row's manager, allocated locally in partition
   #elif CC_ALG == TICTOC
   	Row_tictoc * manager;
   #elif CC_ALG == SILO
@@ -100,11 +104,11 @@ public:
   #elif CC_ALG == VLL
   	Row_vll * manager;
   #endif
-	char * data;
-	table_t * table;
+	char * data; // Real data of this row (stdlib?)
+	table_t * table; // Belongs to which table
 private:
 	// primary key should be calculated from the data stored in the row.
 	uint64_t 		_primary_key;
-	uint64_t		_part_id;
-	uint64_t 		_row_id;
+	uint64_t		_part_id; // In which partition
+	uint64_t 		_row_id; // Which row I am in this table, never set and never used
 };

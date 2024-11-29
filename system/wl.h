@@ -27,6 +27,7 @@ public:
 	virtual RC init();
 	virtual RC init_schema(string schema_file);
 	virtual RC init_table()=0;
+	// Create a new transaction manager and bind it to this hardware/simulator thread
 	virtual RC get_txn_man(txn_man *& txn_manager, thread_t * h_thd)=0;
 	
 	bool sim_done;

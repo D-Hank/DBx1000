@@ -6,14 +6,14 @@
 #include "table.h"
 
 uint64_t ycsb_query::the_n = 0;
-double ycsb_query::denom = 0;
+double ycsb_query::denom = 0; // Denominator
 
 void ycsb_query::init(uint64_t thd_id, workload * h_wl, Query_thd * query_thd) {
 	_query_thd = query_thd;
 	requests = (ycsb_request *) 
-		mem_allocator.alloc(sizeof(ycsb_request) * g_req_per_query, thd_id);
+		mem_allocator.alloc(sizeof(ycsb_request) * g_req_per_query, thd_id); // Each thread will process the same number of requests per query
 	part_to_access = (uint64_t *) 
-		mem_allocator.alloc(sizeof(uint64_t) * g_part_per_txn, thd_id);
+		mem_allocator.alloc(sizeof(uint64_t) * g_part_per_txn, thd_id); // For YCSB, assume we already know which partitions to access (Sec 5.5)
 	zeta_2_theta = zeta(2, g_zipf_theta);
 	assert(the_n != 0);
 	assert(denom != 0);
@@ -60,28 +60,28 @@ void ycsb_query::gen_requests(uint64_t thd_id, workload * h_wl) {
 #if CC_ALG == HSTORE
 	assert(g_virtual_part_cnt == g_part_cnt);
 #endif
-	int access_cnt = 0;
-	set<uint64_t> all_keys;
+	int access_cnt = 0; // No use?
+	set<uint64_t> all_keys; // No use?
 	part_num = 0;
 	double r = 0;
 	int64_t rint64 = 0;
 	drand48_r(&_query_thd->buffer, &r);
 	lrand48_r(&_query_thd->buffer, &rint64);
-	if (r < g_perc_multi_part) {
-		for (UInt32 i = 0; i < g_part_per_txn; i++) {
-			if (i == 0 && FIRST_PART_LOCAL)
+	if (r < g_perc_multi_part) { // Default: 1, all spread multi-part
+		for (UInt32 i = 0; i < g_part_per_txn; i++) { // Generate partitions we will access (from a general const bound to a valid bound)
+			if (i == 0 && FIRST_PART_LOCAL) // Default: true
 				part_to_access[part_num] = thd_id % g_virtual_part_cnt;
 			else {
 				part_to_access[part_num] = rint64 % g_virtual_part_cnt;
 			}
 			UInt32 j;
-			for (j = 0; j < part_num; j++) 
+			for (j = 0; j < part_num; j++) // If repeated, do nothing. If no repetition, put in a new slot
 				if ( part_to_access[part_num] == part_to_access[j] )
 					break;
 			if (j == part_num)
 				part_num ++;
 		}
-	} else {
+	} else { // Just one part, randomly generate which part to access
 		part_num = 1;
 		if (FIRST_PART_LOCAL)
 			part_to_access[0] = thd_id % g_part_cnt;
@@ -89,8 +89,8 @@ void ycsb_query::gen_requests(uint64_t thd_id, workload * h_wl) {
 			part_to_access[0] = rint64 % g_part_cnt;
 	}
 
-	int rid = 0;
-	for (UInt32 tmp = 0; tmp < g_req_per_query; tmp ++) {		
+	int rid = 0; // Valid requests we actually generate
+	for (UInt32 tmp = 0; tmp < g_req_per_query; tmp ++) { // Generate each request candidate
 		double r;
 		drand48_r(&_query_thd->buffer, &r);
 		ycsb_request * req = &requests[rid];
@@ -103,27 +103,27 @@ void ycsb_query::gen_requests(uint64_t thd_id, workload * h_wl) {
 			req->scan_len = SCAN_LEN;
 		}
 
-		// the request will access part_id.
+		// Requests share these partitions proportionally, can have repetitions (e.g. Req 0 and Req 1 access the same Part 0)
 		uint64_t ith = tmp * part_num / g_req_per_query;
 		uint64_t part_id = 
 			part_to_access[ ith ];
-		uint64_t table_size = g_synth_table_size / g_virtual_part_cnt;
+		uint64_t table_size = g_synth_table_size / g_virtual_part_cnt; // How many records we have in this virtual part
 		uint64_t row_id = zipf(table_size - 1, g_zipf_theta);
 		assert(row_id < table_size);
-		uint64_t primary_key = row_id * g_virtual_part_cnt + part_id;
+		uint64_t primary_key = row_id * g_virtual_part_cnt + part_id; // Slice-based (interleaved) store
 		req->key = primary_key;
 		int64_t rint64;
 		lrand48_r(&_query_thd->buffer, &rint64);
-		req->value = rint64 % (1<<8);
+		req->value = rint64 % (1<<8); // A random byte
 		// Make sure a single row is not accessed twice
 		if (req->rtype == RD || req->rtype == WR) {
-			if (all_keys.find(req->key) == all_keys.end()) {
+			if (all_keys.find(req->key) == all_keys.end()) { // If it's a different record from before, valid
 				all_keys.insert(req->key);
 				access_cnt ++;
-			} else continue;
+			} else continue; // If not valid, check next candidate
 		} else {
 			bool conflict = false;
-			for (UInt32 i = 0; i < req->scan_len; i++) {
+			for (UInt32 i = 0; i < req->scan_len; i++) { // If all elem not scanned before, this total scan is valid
 				primary_key = (row_id + i) * g_part_cnt + part_id;
 				if (all_keys.find( primary_key )
 					!= all_keys.end())
@@ -131,7 +131,7 @@ void ycsb_query::gen_requests(uint64_t thd_id, workload * h_wl) {
 			}
 			if (conflict) continue;
 			else {
-				for (UInt32 i = 0; i < req->scan_len; i++)
+				for (UInt32 i = 0; i < req->scan_len; i++) // Simply insert all keys in this scan
 					all_keys.insert( (row_id + i) * g_part_cnt + part_id);
 				access_cnt += SCAN_LEN;
 			}

@@ -41,7 +41,7 @@ OptCC::per_row_validate(txn_man * txn) {
 	for (int i = txn->row_cnt - 1; i > 0; i--) {
 		for (int j = 0; j < i; j ++) {
 			int tabcmp = strcmp(txn->accesses[j]->orig_row->get_table_name(), 
-			txn->accesses[j+1]->orig_row->get_table_name());
+			txn->accesses[j+1]->orig_row->get_table_name()); // First sort by table name, then prikey
 			if (tabcmp > 0 || (tabcmp == 0 && txn->accesses[j]->orig_row->get_primary_key() > txn->accesses[j+1]->orig_row->get_primary_key())) {
 				Access * tmp = txn->accesses[j]; 
 				txn->accesses[j] = txn->accesses[j+1];
@@ -63,8 +63,8 @@ OptCC::per_row_validate(txn_man * txn) {
 	int lock_cnt = 0;
 	for (int i = 0; i < txn->row_cnt && ok; i++) {
 		lock_cnt ++;
-		txn->accesses[i]->orig_row->manager->latch();
-		ok = txn->accesses[i]->orig_row->manager->validate( txn->start_ts );
+		txn->accesses[i]->orig_row->manager->latch(); // Acquire original row's latch
+		ok = txn->accesses[i]->orig_row->manager->validate( txn->start_ts ); // Check if it has been modified since we started
 	}
 	if (ok) {
 		// Validation passed.
@@ -79,7 +79,7 @@ OptCC::per_row_validate(txn_man * txn) {
 	}
 
 	for (int i = 0; i < lock_cnt; i++) 
-		txn->accesses[i]->orig_row->manager->release();
+		txn->accesses[i]->orig_row->manager->release(); // Now release
 #endif
 	return rc;
 }

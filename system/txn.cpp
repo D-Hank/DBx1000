@@ -41,7 +41,7 @@ void txn_man::init(thread_t * h_thd, workload * h_wl, uint64_t thd_id) {
 #endif
 
 }
-
+// Give this txn an ID (global)
 void txn_man::set_txn_id(txnid_t txn_id) {
 	this->txn_id = txn_id;
 }
@@ -65,7 +65,7 @@ void txn_man::set_ts(ts_t timestamp) {
 ts_t txn_man::get_ts() {
 	return this->timestamp;
 }
-
+// Clean up work not finished: release, rollback, reset
 void txn_man::cleanup(RC rc) {
 #if CC_ALG == HEKATON
 	row_cnt = 0;
@@ -73,7 +73,7 @@ void txn_man::cleanup(RC rc) {
 	insert_cnt = 0;
 	return;
 #endif
-	for (int rid = row_cnt - 1; rid >= 0; rid --) {
+	for (int rid = row_cnt - 1; rid >= 0; rid --) { // Already sorted, from last prikey to first
 		row_t * orig_r = accesses[rid]->orig_row;
 		access_t type = accesses[rid]->type;
 		if (type == WR && rc == Abort)
@@ -91,12 +91,12 @@ void txn_man::cleanup(RC rc) {
 					CC_ALG == NO_WAIT || 
 					CC_ALG == WAIT_DIE)) 
 		{
-			orig_r->return_row(type, this, accesses[rid]->orig_data);
+			orig_r->return_row(type, this, accesses[rid]->orig_data); // If aborted write, recover the original data
 		} else {
-			orig_r->return_row(type, this, accesses[rid]->data);
+			orig_r->return_row(type, this, accesses[rid]->data); // Default, may write new data back to the original row
 		}
 #if CC_ALG != TICTOC && CC_ALG != SILO
-		accesses[rid]->data = NULL;
+		accesses[rid]->data = NULL; // Data buffer is already returned
 #endif
 	}
 
@@ -118,13 +118,13 @@ void txn_man::cleanup(RC rc) {
 	dl_detector.clear_dep(get_txn_id());
 #endif
 }
-
+// Get access to a row. See `row_t::get_row`
 row_t * txn_man::get_row(row_t * row, access_t type) {
 	if (CC_ALG == HSTORE)
 		return row;
 	uint64_t starttime = get_sys_clock();
 	RC rc = RCOK;
-	if (accesses[row_cnt] == NULL) {
+	if (accesses[row_cnt] == NULL) { // No enough slots even though reusing, alloc a new one
 		Access * access = (Access *) _mm_malloc(sizeof(Access), 64);
 		accesses[row_cnt] = access;
 #if (CC_ALG == SILO || CC_ALG == TICTOC)
@@ -138,7 +138,8 @@ row_t * txn_man::get_row(row_t * row, access_t type) {
 #endif
 		num_accesses_alloc ++;
 	}
-	
+	// NOTE: if a copy is returned, this `row` should be a different obj from that row stored in `txn` or `accesses`
+	// `this` row becomes the original row and may change once we release the latch
 	rc = row->get_row(type, this, accesses[ row_cnt ]->data);
 
 
@@ -169,14 +170,14 @@ row_t * txn_man::get_row(row_t * row, access_t type) {
 #endif
 	
 	row_cnt ++;
-	if (type == WR)
+	if (type == WR) // SCAN maybe treated as RD, each time we receive different `row`
 		wr_cnt ++;
 
 	uint64_t timespan = get_sys_clock() - starttime;
 	INC_TMP_STATS(get_thd_id(), time_man, timespan);
 	return accesses[row_cnt - 1]->data;
 }
-
+// Never used?
 void txn_man::insert_row(row_t * row, table_t * table) {
 	if (CC_ALG == HSTORE)
 		return;
@@ -209,7 +210,7 @@ RC txn_man::finish(RC rc) {
 	if (rc == RCOK)
 		rc = occ_man.validate(this);
 	else 
-		cleanup(rc);
+		cleanup(rc); // Write and release resources
 #elif CC_ALG == TICTOC
 	if (rc == RCOK)
 		rc = validate_tictoc();

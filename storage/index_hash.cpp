@@ -37,7 +37,7 @@ IndexHash::release_latch(BucketHeader * bucket) {
 	assert(ok);
 }
 
-	
+// We only do latching for insertion. For YCSB, no dependency
 RC IndexHash::index_insert(idx_key_t key, itemid_t * item, int part_id) {
 	RC rc = RCOK;
 	uint64_t bkt_idx = hash(key);
@@ -53,7 +53,7 @@ RC IndexHash::index_insert(idx_key_t key, itemid_t * item, int part_id) {
 	release_latch(cur_bkt);
 	return rc;
 }
-
+// Why not latching?
 RC IndexHash::index_read(idx_key_t key, itemid_t * &item, int part_id) {
 	uint64_t bkt_idx = hash(key);
 	assert(bkt_idx < _bucket_cnt_per_part);
@@ -97,12 +97,12 @@ void BucketHeader::insert_item(idx_key_t key,
 	BucketNode * cur_node = first_node;
 	BucketNode * prev_node = NULL;
 	while (cur_node != NULL) {
-		if (cur_node->key == key)
+		if (cur_node->key == key) // Repetition found
 			break;
 		prev_node = cur_node;
 		cur_node = cur_node->next;
 	}
-	if (cur_node == NULL) {		
+	if (cur_node == NULL) { // Searched to tail, no repetition
 		BucketNode * new_node = (BucketNode *) 
 			mem_allocator.alloc(sizeof(BucketNode), part_id );
 		new_node->init(key);
@@ -110,16 +110,16 @@ void BucketHeader::insert_item(idx_key_t key,
 		if (prev_node != NULL) {
 			new_node->next = prev_node->next;
 			prev_node->next = new_node;
-		} else {
+		} else { // This newly added node is the first one
 			new_node->next = first_node;
 			first_node = new_node;
 		}
-	} else {
+	} else { // If repeated
 		item->next = cur_node->items;
 		cur_node->items = item;
 	}
 }
-
+// Link list chasing
 void BucketHeader::read_item(idx_key_t key, itemid_t * &item, const char * tname) 
 {
 	BucketNode * cur_node = first_node;

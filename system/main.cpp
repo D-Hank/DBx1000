@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
 	parser(argc, argv);
 	
-	mem_allocator.init(g_part_cnt, MEM_SIZE / g_part_cnt); 
+	mem_allocator.init(g_part_cnt, MEM_SIZE / g_part_cnt); // Divide this 1GB into 1 part(s)
 	stats.init();
 	glob_manager = (Manager *) _mm_malloc(sizeof(Manager), 64);
 	glob_manager->init();
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 #elif CC_ALG == VLL
 	vll_man.init();
 #endif
-
+	// Master thread init all TCBs, same m_wl for all
 	for (uint32_t i = 0; i < thd_cnt; i++) 
 		m_thds[i]->init(i, m_wl);
 

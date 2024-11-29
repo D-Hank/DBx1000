@@ -26,6 +26,6 @@ public:
 	Catalog * 		schema;
 private:
 	const char * 	table_name;
-	uint64_t  		cur_tab_size;
+	uint64_t  		cur_tab_size; // Current number of rows in this table
 	char 			pad[CL_SIZE - sizeof(void *)*3];
 };

@@ -4,7 +4,7 @@
 #include <vector>
 #include "global.h"
 #include "helper.h"
-
+// Column title / specifications
 class Column {
 public:
 	Column() {
@@ -23,9 +23,9 @@ public:
 		strcpy(this->name, name);
 	};
 
-	UInt64 id;
-	UInt32 size;
-	UInt32 index;
+	UInt64 id; // Which column I am inside this table
+	UInt32 size; // Size of this col/field inside a tuple, in byte
+	UInt32 index; // Offset / which byte of this col inside a tuple
 	char * type;
 	char * name;
 	char pad[CL_SIZE - sizeof(uint64_t)*3 - sizeof(char *)*2];
@@ -38,7 +38,7 @@ public:
 	void init(const char * table_name, int field_cnt);
 	void add_col(char * col_name, uint64_t size, char * type);
 
-	UInt32 			field_cnt;
+	UInt32 			field_cnt; // How many fields/columns we have up to now
  	const char * 	table_name;
 	
 	UInt32 			get_tuple_size() { return tuple_size; };
@@ -53,7 +53,7 @@ public:
 	uint64_t 		get_field_index(char * name);
 
 	void 			print_schema();
-	Column * 		_columns;
-	UInt32 			tuple_size;
+	Column * 		_columns; // Array of column data structure (column title)
+	UInt32 			tuple_size; // Size of a single tuple (sum of all its fields/cols)
 };
 

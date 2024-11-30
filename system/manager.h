@@ -20,8 +20,9 @@ public:
 	// lock/timestamp manager. 
  	void 			lock_row(row_t * row);
 	void 			release_row(row_t * row);
-	
+	// Get my/others' registered txn
 	txn_man * 		get_txn_man(int thd_id) { return _all_txns[thd_id]; };
+	// A certain thread registers its txn in global structure
 	void 			set_txn_man(txn_man * txn);
 	
 	uint64_t 		get_epoch() { return *_epoch; };

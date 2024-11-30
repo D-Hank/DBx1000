@@ -76,7 +76,7 @@ RC tpcc_wl::init_table() {
 	printf("TPCC Data Initialization Complete!\n");
 	return RCOK;
 }
-
+// Create a new transaction manager and bind it to this hardware/simulator thread
 RC tpcc_wl::get_txn_man(txn_man *& txn_manager, thread_t * h_thd) {
 	txn_manager = (tpcc_txn_man *) _mm_malloc( sizeof(tpcc_txn_man), 64);
 	new(txn_manager) tpcc_txn_man();
@@ -84,7 +84,7 @@ RC tpcc_wl::get_txn_man(txn_man *& txn_manager, thread_t * h_thd) {
 	return RCOK;
 }
 
-// TODO ITEM table is assumed to be in partition 0
+// TODO ITEM table is assumed to be in partition 0 (init by thread 0)
 void tpcc_wl::init_tab_item() {
 	for (UInt32 i = 1; i <= g_max_items; i++) {
 		row_t * row;
@@ -101,13 +101,14 @@ void tpcc_wl::init_tab_item() {
     	MakeAlphaString(26, 50, data, 0);
 		// TODO in TPCC, "original" should start at a random position
 		if (RAND(10, 0) == 0) 
-			strcpy(data, "original");		
+			strcpy(data, "original"); // Copy to a len-24 buffer	
 		row->set_value(I_DATA, data);
 		
 		index_insert(i_item, i, row, 0);
 	}
 }
-
+// One thread is responsible for one warehouse
+// NOTE: can be problematic when NUM_WH > 1?
 void tpcc_wl::init_tab_wh(uint32_t wid) {
 	assert(wid >= 1 && wid <= g_num_wh);
 	row_t * row;
@@ -140,7 +141,7 @@ void tpcc_wl::init_tab_wh(uint32_t wid) {
 	index_insert(i_warehouse, wid, row, wh_to_part(wid));
 	return;
 }
-
+// Init district table
 void tpcc_wl::init_tab_dist(uint64_t wid) {
 	for (uint64_t did = 1; did <= DIST_PER_WARE; did++) {
 		row_t * row;
@@ -384,7 +385,7 @@ tpcc_wl::init_permutation(uint64_t * perm_c_id, uint64_t wid) {
 | ROUTINE NAME
 | GetPermutation
 +==================================================================*/
-
+// All threads records of tables together
 void * tpcc_wl::threadInitWarehouse(void * This) {
 	tpcc_wl * wl = (tpcc_wl *) This;
 	int tid = ATOM_FETCH_ADD(wl->next_tid, 1);
@@ -394,7 +395,7 @@ void * tpcc_wl::threadInitWarehouse(void * This) {
 	srand48_r(wid, tpcc_buffer[tid]);
 	
 	if (tid == 0)
-		wl->init_tab_item();
+		wl->init_tab_item(); // Reside in partition 0
 	wl->init_tab_wh( wid );
 	wl->init_tab_dist( wid );
 	wl->init_tab_stock( wid );

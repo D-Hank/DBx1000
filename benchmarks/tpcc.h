@@ -7,32 +7,32 @@
 class table_t;
 class INDEX;
 class tpcc_query;
-
+// All threads share this same workload
 class tpcc_wl : public workload {
 public:
 	RC init();
 	RC init_table();
 	RC init_schema(const char * schema_file);
 	RC get_txn_man(txn_man *& txn_manager, thread_t * h_thd);
-	table_t * 		t_warehouse;
-	table_t * 		t_district;
-	table_t * 		t_customer;
-	table_t *		t_history;
-	table_t *		t_neworder;
-	table_t *		t_order;
-	table_t *		t_orderline;
-	table_t *		t_item;
-	table_t *		t_stock;
+	table_t * 		t_warehouse; // The WAREHOUSE table
+	table_t * 		t_district; // The DISTRICT table
+	table_t * 		t_customer; // The CUSTOMER table
+	table_t *		t_history; // The HISTORY table
+	table_t *		t_neworder; // The NEW-ORDER table
+	table_t *		t_order; // The ORDER table
+	table_t *		t_orderline; // The ORDERLINE table
+	table_t *		t_item; // The ITEM table
+	table_t *		t_stock; // The STOCK table
 
-	INDEX * 	i_item;
-	INDEX * 	i_warehouse;
-	INDEX * 	i_district;
-	INDEX * 	i_customer_id;
-	INDEX * 	i_customer_last;
-	INDEX * 	i_stock;
-	INDEX * 	i_order; // key = (w_id, d_id, o_id)
-	INDEX * 	i_orderline; // key = (w_id, d_id, o_id)
-	INDEX * 	i_orderline_wd; // key = (w_id, d_id). 
+	INDEX * 	i_item; // The ITEM_IDX index (primary key)
+	INDEX * 	i_warehouse; // The WAREHOUSE_IDX index (primary key)
+	INDEX * 	i_district; // The DISTRICT_IDX index (primary key)
+	INDEX * 	i_customer_id; // The CUSTOMER_IDX index (primary key)
+	INDEX * 	i_customer_last; // The CUSTOMER_LAST_IDX index (primary key)
+	INDEX * 	i_stock; // The STOCK_IDX index (primary key)
+	INDEX * 	i_order; // The ORDER_IDX index (foreign key), key = (w_id, d_id, o_id)
+	INDEX * 	i_orderline; // The ORDERLINE_IDX index (foreign key), key = (w_id, d_id, o_id)
+	INDEX * 	i_orderline_wd; // The ORDERLINE_WD_IDX index (foreign key), key = (w_id, d_id). 
 	
 	bool ** delivering;
 	uint32_t next_tid;

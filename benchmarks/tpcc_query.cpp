@@ -10,12 +10,12 @@ void tpcc_query::init(uint64_t thd_id, workload * h_wl) {
 	double x = (double)(rand() % 100) / 100.0;
 	part_to_access = (uint64_t *) 
 		mem_allocator.alloc(sizeof(uint64_t) * g_part_cnt, thd_id);
-	if (x < g_perc_payment)
+	if (x < g_perc_payment) // We only support these two now
 		gen_payment(thd_id);
 	else 
 		gen_new_order(thd_id);
 }
-
+// This txn will be a payment
 void tpcc_query::gen_payment(uint64_t thd_id) {
 	type = TPCC_PAYMENT;
 	if (FIRST_PART_LOCAL)
@@ -59,7 +59,7 @@ void tpcc_query::gen_payment(uint64_t thd_id) {
 		c_id = NURand(1023, 1, g_cust_per_dist,w_id-1);
 	}
 }
-
+// This txn will be a new order
 void tpcc_query::gen_new_order(uint64_t thd_id) {
 	type = TPCC_NEW_ORDER;
 	if (FIRST_PART_LOCAL)

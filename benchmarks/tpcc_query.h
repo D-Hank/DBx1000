@@ -13,7 +13,7 @@ struct Item_no {
 	uint64_t ol_supply_w_id;
 	uint64_t ol_quantity;
 };
-
+// A single TPCC txn
 class tpcc_query : public base_query {
 public:
 	void init(uint64_t thd_id, workload * h_wl);

@@ -66,7 +66,7 @@ Query_queue::threadInitQuery(void * This) { // Each thread access this same quer
 
 void 
 Query_thd::init(workload * h_wl, int thread_id) {
-	uint64_t request_cnt;
+	uint64_t request_cnt; // Number of txn a thread will process
 	q_idx = 0;
 	request_cnt = WARMUP / g_thread_cnt + MAX_TXN_PER_PART + 4; // NOTE: Where does this 4 come from? Maybe just for reservation? (since get_next_query can reads until NULL)
 #if ABORT_BUFFER_ENABLE

@@ -55,7 +55,7 @@ UInt32 g_field_per_tuple = FIELD_PER_TUPLE;
 UInt32 g_init_parallelism = INIT_PARALLELISM;
 
 UInt32 g_num_wh = NUM_WH; // Num of warehouses, for TPCC
-double g_perc_payment = PERC_PAYMENT;
+double g_perc_payment = PERC_PAYMENT; // Percentage of payment transactions
 bool g_wh_update = WH_UPDATE;
 char * output_file = NULL;
 

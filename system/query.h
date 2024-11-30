@@ -26,7 +26,7 @@ public:
 #if WORKLOAD == YCSB
 	ycsb_query * queries; // All queries (txn) belongs to this thread
 #else 
-	tpcc_query * queries;
+	tpcc_query * queries; // All queries (txn) belongs to this thread
 #endif
 	char pad[CL_SIZE - sizeof(void *) - sizeof(int)];
 	drand48_data buffer;

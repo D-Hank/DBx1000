@@ -70,7 +70,7 @@ RC workload::init_schema(string schema_file) {
 			vector<string> items;
 			string token;
 			size_t pos;
-			while (line.length() != 0) { // Split: on which table, which key
+			while (line.length() != 0) { // Split: on which table, bucket count (may be optional)
 				pos = line.find(",");
 				if (pos == string::npos)
 					pos = line.length();

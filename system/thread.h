@@ -27,6 +27,7 @@ private:
 	uint64_t 	_host_cid;
 	uint64_t 	_cur_cid;
 	ts_t 		_curr_ts;
+	// Alloc ts for a certain thread
 	ts_t 		get_next_ts();
 
 	RC	 		runTest(txn_man * txn);

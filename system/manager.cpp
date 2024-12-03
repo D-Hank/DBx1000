@@ -63,10 +63,10 @@ Manager::get_ts(uint64_t thread_id) { // Default: no batch, using CAS
 ts_t Manager::get_min_ts(uint64_t tid) {
 	uint64_t now = get_sys_clock();
 	uint64_t last_time = _last_min_ts_time; 
-	if (tid == 0 && now - last_time > MIN_TS_INTVL)
+	if (tid == 0 && now - last_time > MIN_TS_INTVL) // Let thread 0 maintain the minimum ts
 	{ 
 		ts_t min = UINT64_MAX;
-    		for (UInt32 i = 0; i < g_thread_cnt; i++)
+    		for (UInt32 i = 0; i < g_thread_cnt; i++) // NOTE: it might be ok to read an outdated ts so we won't lock? Thus `_min_ts` might also be outdated
 			if (*all_ts[i] < min)
 		    	    	min = *all_ts[i];
 		if (min > _min_ts)

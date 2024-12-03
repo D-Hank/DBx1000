@@ -9,14 +9,14 @@
 // each transaction only accesses 1 virtual partition. But the lock/ts manager and index are not aware of such partitioning. VIRTUAL_PART_CNT describes the request distribution and is only used to generate queries. For HSTORE, VIRTUAL_PART_CNT should be the same as PART_CNT.
 #define VIRTUAL_PART_CNT			1
 #define PAGE_SIZE					4096 
-#define CL_SIZE						64 // Size of a Column/Catalog data structure
+#define CL_SIZE						64 // Size of a cacheline
 // CPU_FREQ is used to get accurate timing info 
 #define CPU_FREQ 					2 	// in GHz/s
 
 // # of transactions to run for warmup
 #define WARMUP						0
 // YCSB or TPCC
-#define WORKLOAD 					TPCC//YCSB
+#define WORKLOAD 					/*TPCC*/YCSB
 // print the transaction latency distribution
 #define PRT_LAT_DISTR				false
 #define STATS_ENABLE				true
@@ -39,7 +39,7 @@
 /***********************************************/
 // WAIT_DIE, NO_WAIT, DL_DETECT, TIMESTAMP, MVCC, HEKATON, HSTORE, OCC, VLL, TICTOC, SILO
 // TODO TIMESTAMP does not work at this moment
-#define CC_ALG 						OCC
+#define CC_ALG 						MVCC
 #define ISOLATION_LEVEL 			SERIALIZABLE
 
 // all transactions acquire tuples according to the primary key order.
@@ -75,7 +75,7 @@
 //#define HIS_RECYCLE_LEN				10
 //#define MAX_PRE_REQ					1024
 //#define MAX_READ_REQ				1024
-#define MIN_TS_INTVL				5000000 //5 ms. In nanoseconds
+#define MIN_TS_INTVL				5000000 //5 ms. In nanoseconds. How often we update the minimum txn ts
 // [OCC]
 #define MAX_WRITE_SET				10
 #define PER_ROW_VALID				true

@@ -38,6 +38,7 @@ class row_t
 public:
 
 	RC init(table_t * host_table, uint64_t part_id, uint64_t row_id = 0);
+	// Will simply alloc a buffer
 	void init(int size);
 	RC switch_schema(table_t * host_table);
 	// not every row has a manager
@@ -82,7 +83,7 @@ public:
 
 	// for concurrency control. can be lock, timestamp etc.
 	// Try to access `this` row with priority specified by `type` and transaction specified by `txn`.
-	// Fill the content (usually a copy) you want in the reference `&row`
+	// Fill the content (can be a copy, or the row itself) you want in the reference `&row`
 	// CC manager corresponding to our protocol will be called
 	RC get_row(access_t type, txn_man * txn, row_t *& row);
 	void return_row(access_t type, txn_man * txn, row_t * row);

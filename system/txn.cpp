@@ -73,6 +73,9 @@ void txn_man::cleanup(RC rc) {
 	insert_cnt = 0;
 	return;
 #endif
+	// NOTE: what if some succeed but ended up abort?
+	// We only rollback what we touch
+	// NOTE: why not commit all rows together? What if txns interleavingly commit?
 	for (int rid = row_cnt - 1; rid >= 0; rid --) { // Already sorted, from last prikey to first
 		row_t * orig_r = accesses[rid]->orig_row;
 		access_t type = accesses[rid]->type;
@@ -118,7 +121,7 @@ void txn_man::cleanup(RC rc) {
 	dl_detector.clear_dep(get_txn_id());
 #endif
 }
-// Get access to a row. See `row_t::get_row`
+// Get access to a row. See `row_t::get_row`. We will additionally record info in `this->accesses`
 row_t * txn_man::get_row(row_t * row, access_t type) {
 	if (CC_ALG == HSTORE)
 		return row;

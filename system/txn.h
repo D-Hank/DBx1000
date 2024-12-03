@@ -50,8 +50,9 @@ public:
 	workload * 		get_wl();
 	void 			set_txn_id(txnid_t txn_id);
 	txnid_t 		get_txn_id();
-
+	// Register my (start) ts in my txn
 	void 			set_ts(ts_t timestamp);
+	// Read my registered ts
 	ts_t 			get_ts();
 
 	pthread_mutex_t txn_lock;
@@ -63,7 +64,7 @@ public:
 	bool volatile 	lock_ready;
 	bool volatile 	lock_abort; // forces another waiting txn to abort.
 	// [TIMESTAMP, MVCC]
-	bool volatile 	ts_ready; 
+	bool volatile 	ts_ready;  // Whether a pending req in queue is ready
 	// [HSTORE]
 	int volatile 	ready_part;
 	RC 				finish(RC rc);
@@ -98,7 +99,7 @@ private:
 	uint64_t 		insert_cnt; // Number of inserted rows
 	row_t * 		insert_rows[MAX_ROW_PER_TXN]; // Rows we inserted
 	txnid_t 		txn_id; // My currently processing txn, its ID among all possible txn
-	ts_t 			timestamp;
+	ts_t 			timestamp; // This txn's start ts
 
 	bool _write_copy_ptr;
 #if CC_ALG == TICTOC || CC_ALG == SILO

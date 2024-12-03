@@ -45,7 +45,7 @@ RC ycsb_txn_man::run_txn(base_query * query) {
 			}
 #endif
 			row_t * row = ((row_t *)m_item->location);
-			row_t * row_local; // Can index to a remote location, if so, create a copy in local partition
+			row_t * row_local; // Can index to a remote location, if so, may create a copy in local partition (OCC), can also reference the original one (MVCC)
 			access_t type = req->rtype;
 			
 			row_local = get_row(row, type); // If scan, we will change row by advancing `iteration`

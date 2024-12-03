@@ -210,7 +210,7 @@ RC row_t::get_row(access_t type, txn_man * txn, row_t *& row) {
 	return rc;
 #elif CC_ALG == TIMESTAMP || CC_ALG == MVCC || CC_ALG == HEKATON 
 	uint64_t thd_id = txn->get_thd_id();
-	// For TIMESTAMP RD, a new copy of the row will be returned.
+	// For TIMESTAMP RD, a new copy of the row will be returned (to guarantee repeatable read).
 	// for MVCC RD, the version will be returned instead of a copy
 	// So for MVCC RD-WR, the version should be explicitly copied.
 	//row_t * newr = NULL;
@@ -226,13 +226,13 @@ RC row_t::get_row(access_t type, txn_man * txn, row_t *& row) {
 	rc = this->manager->access(txn, ts_type, row);
 	if (rc == RCOK ) {
 		row = txn->cur_row;
-	} else if (rc == WAIT) {
+	} else if (rc == WAIT) { // I'm a reader waiting for writers
 		uint64_t t1 = get_sys_clock();
-		while (!txn->ts_ready)
+		while (!txn->ts_ready) // Wait until I'm ready
 			PAUSE
 		uint64_t t2 = get_sys_clock();
 		INC_TMP_STATS(thd_id, time_wait, t2 - t1);
-		row = txn->cur_row;
+		row = txn->cur_row; // When I'm ready, I get that access and should be same as OK
 	}
 	if (rc != Abort) {
 		row->table = get_table();
@@ -280,7 +280,7 @@ void row_t::return_row(access_t type, txn_man * txn, row_t * row) {
 	// because all WR should be companied by a RD
 	// for MVCC RD, the row is not copied, so no need to free. 
   #if CC_ALG == TIMESTAMP
-	if (type == RD || type == SCAN) {
+	if (type == RD || type == SCAN) { // Since we hold a copy for RD
 		row->free_row();
 		mem_allocator.free(row, sizeof(row_t));
 	}
@@ -290,6 +290,8 @@ void row_t::return_row(access_t type, txn_man * txn, row_t * row) {
 	} else if (type == WR) {
 		assert (type == WR && row != NULL);
 		assert (row->get_schema() == this->get_schema());
+		// This is a true write, write commit
+		// For MVCC, interleaving commit might not be a problem since we only allow one prewriter thus interleaving txn will not write a same row
 		RC rc = this->manager->access(txn, W_REQ, row);
 		assert(rc == RCOK);
 	}

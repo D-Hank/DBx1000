@@ -136,7 +136,7 @@ typedef uint64_t (*func_ptr)(idx_key_t);	// part_id func_ptr(index_key);
 enum access_t {RD, WR, XP, SCAN};
 /* LOCK */
 enum lock_t {LOCK_EX, LOCK_SH, LOCK_NONE };
-/* TIMESTAMP */
+/* TIMESTAMP where P=prewrite or pending? XP=cancelled or aborted P? */
 enum TsType {R_REQ, W_REQ, P_REQ, XP_REQ}; 
 
 
